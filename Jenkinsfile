@@ -3,21 +3,29 @@ pipeline {
 
     stages {
 
-        stage('Checkout Info') {
+        stage('Checkout') {
             steps {
-                echo "Running Build ${BUILD_NUMBER}"
                 sh 'pwd'
                 sh 'ls -l'
             }
         }
 
-        stage('Read File') {
+        stage('Quality Check') {
             steps {
-                sh 'cat app.txt'
+                sh '''
+                    echo "Running quality checks..."
+
+                    if [ ! -f app.txt ]; then
+                        echo "ERROR: app.txt not found"
+                        exit 1
+                    fi
+
+                    echo "Quality check passed"
+                '''
             }
         }
 
-        stage('Create Artifact') {
+        stage('Build Artifact') {
             steps {
                 sh 'tar -cvf build.tar app.txt'
             }
@@ -26,10 +34,10 @@ pipeline {
 
     post {
         success {
-            echo 'Build completed successfully'
+            echo 'CI Pipeline SUCCESS'
         }
         failure {
-            echo 'Build failed'
+            echo 'CI Pipeline FAILED'
         }
     }
 }
