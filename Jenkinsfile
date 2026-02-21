@@ -1,26 +1,21 @@
 pipeline {
     agent any
 
-    stages {
+    environment {
+        DEPLOY_USER = "root"
+        DEPLOY_HOST = "47.130.155.189"
+        DEPLOY_DIR  = "/opt/app"
+    }
 
-        stage('Checkout') {
-            steps {
-                sh 'pwd'
-                sh 'ls -l'
-            }
-        }
+    stages {
 
         stage('Quality Check') {
             steps {
                 sh '''
-                    echo "Running quality checks..."
-
                     if [ ! -f app.txt ]; then
                         echo "ERROR: app.txt not found"
                         exit 1
                     fi
-
-                    echo "Quality check passed"
                 '''
             }
         }
@@ -30,14 +25,27 @@ pipeline {
                 sh 'tar -cvf build.tar app.txt'
             }
         }
+
+        stage('Deploy to Server') {
+            steps {
+                sh '''
+                    echo "Deploying to server..."
+                    scp build.tar ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_DIR}
+                    ssh ${DEPLOY_USER}@${DEPLOY_HOST} "
+                        cd ${DEPLOY_DIR} &&
+                        tar -xvf build.tar
+                    "
+                '''
+            }
+        }
     }
 
     post {
         success {
-            echo 'CI Pipeline SUCCESS'
+            echo 'CD SUCCESS – Application deployed'
         }
         failure {
-            echo 'CI Pipeline FAILED'
+            echo 'CD FAILED – Deployment aborted'
         }
     }
 }
