@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DEPLOY_USER = "root"
+        DEPLOY_USER = "ec2-user"
         DEPLOY_HOST = "47.130.155.189"
         DEPLOY_DIR  = "/opt/app"
     }
