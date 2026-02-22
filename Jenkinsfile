@@ -1,12 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        DEPLOY_USER = "ec2-user"
-        DEPLOY_HOST = "47.130.155.189"
-        DEPLOY_DIR  = "/opt/app"
-    }
-
     stages {
 
         stage('Quality Check') {
@@ -26,15 +20,12 @@ pipeline {
             }
         }
 
-        stage('Deploy to Server') {
+        stage('Deploy via Ansible') {
             steps {
                 sh '''
-                    echo "Deploying to server..."
-                    scp build.tar ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_DIR}
-                    ssh ${DEPLOY_USER}@${DEPLOY_HOST} "
-                        cd ${DEPLOY_DIR} &&
-                        tar -xvf build.tar
-                    "
+                    cp build.tar /opt/ansible/
+                    cd /opt/ansible
+                    ansible-playbook -i inventory/hosts playbooks/deploy.yml
                 '''
             }
         }
@@ -42,10 +33,10 @@ pipeline {
 
     post {
         success {
-            echo 'CD SUCCESS – Application deployed'
+            echo 'Deployment completed via Ansible'
         }
         failure {
-            echo 'CD FAILED – Deployment aborted'
+            echo 'Deployment failed'
         }
     }
 }
