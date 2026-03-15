@@ -20,23 +20,24 @@ pipeline {
             }
         }
 
-        stage('Deploy via Ansible') {
+        stage('Deploy via Ansible (Secure)') {
             steps {
-                sh '''
-                    cp build.tar /opt/ansible/
-                    cd /opt/ansible
-                    ansible-playbook -i inventory/hosts playbooks/deploy.yml
-                '''
+                withCredentials([
+                    sshUserPrivateKey(
+                        credentialsId: 'ansible-ssh-key',
+                        keyFileVariable: 'SSH_KEY',
+                        usernameVariable: 'SSH_USER'
+                    )
+                ]) {
+                    sh '''
+                        export ANSIBLE_PRIVATE_KEY_FILE=$SSH_KEY
+                        cp build.tar /opt/ansible/
+                        cd /opt/ansible
+                        ansible-playbook -i /opt/ansible/inventory/hosts /opt/ansible/playbooks/deploy.yml \
+                          -u $SSH_USER
+                    '''
+                }
             }
-        }
-    }
-
-    post {
-        success {
-            echo 'Deployment completed via Ansible'
-        }
-        failure {
-            echo 'Deployment failed'
         }
     }
 }
