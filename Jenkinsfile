@@ -33,7 +33,7 @@ pipeline {
                         export ANSIBLE_PRIVATE_KEY_FILE=$SSH_KEY
                         cp build.tar /opt/ansible/
                         cd /opt/ansible
-                        ansible-playbook -i /opt/ansible/inventory/hosts /opt/ansible/playbooks/deploy.yml \
+                        ansible-playbook -i inventory/hosts playbooks/deploy.yml \
                           -u $SSH_USER
                     '''
                 }
